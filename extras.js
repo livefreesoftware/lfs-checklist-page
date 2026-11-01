@@ -77,59 +77,19 @@
   document.addEventListener('click', e => { if (!panel.hidden && !panel.contains(e.target) && e.target.id !== 'settingsBtn') panel.hidden = true; });
 
   window.renderSettings = function () {
-    $('setClaude').value = settings.claude_enabled ? 'on' : 'off';
-    $('setConfirm').checked = !!settings.confirm;
-    if (document.activeElement !== $('setLimit')) $('setLimit').value = settings.daily_limit;
     $('setNotify').checked = settings.notifications !== false;
     $('setTheme').value = store.get('theme', '');
     $('setDensity').value = store.get('density', '');
     $('setConfetti').checked = store.get('confetti', '1') === '1';
-    if (document.activeElement !== $('setMonthly')) $('setMonthly').value = settings.monthly_limit;
     $('setHideTokens').checked = store.get('hideTokens', '1') !== '0';
     $('setFont').value = store.get('fontSize', '15');
     $('setArchive').value = String(settings.auto_archive_days || 0);
-    $('setPhone').checked = !!settings.phone_access;
-    $('setPin').placeholder = settings.pin_set ? '•••• (set)' : 'none';
-    $('phoneNote').textContent = settings.phone_access
-      ? (settings.pin_set ? 'After restarting the checklist, open ' + settings.lan_url + ' on your phone (same Wi-Fi) and enter the PIN. Then use Share › Add to Home Screen.' : 'Set a PIN first. Phone access only turns on with a PIN.')
-      : 'Off: only this Mac can open the checklist.';
-    const u = settings.usage || {};
-    $('usageNote').textContent = (settings.has_key ? '' : 'No API key yet (add it to claude-api-key.txt). ')
-      + 'Spent today: ' + money(u.today) + ' (' + (u.calls_today || 0) + ' calls) · this month: ' + money(u.month)
-      + '. Full log: Saved Items/claude-usage.json';
-    const ul = $('usageList');
-    ul.innerHTML = '';
-    for (const r of (u.recent || []).slice(0, 8)) {
-      ul.append(el('li', '', r.time.slice(5, 16).replace('T', ' ') + '  ' + r.action + (r.item ? ' (' + r.item.slice(0, 30) + ')' : '') + '  ' + money(r.cost)));
-    }
   };
 
-  $('setClaude').addEventListener('change', async () => {
-    const on = $('setClaude').value === 'on';
-    if (on && !confirm('Turn Claude on? Claude buttons cost about 1–3 cents per click.')) { $('setClaude').value = 'off'; return; }
-    await saveSettings({ claude_enabled: on });
-  });
-  $('setConfirm').addEventListener('change', () => saveSettings({ confirm: $('setConfirm').checked }));
-  $('setLimit').addEventListener('change', () => saveSettings({ daily_limit: parseFloat($('setLimit').value) || 0 }));
   $('setNotify').addEventListener('change', () => saveSettings({ notifications: $('setNotify').checked }));
-  $('setMonthly').addEventListener('change', () => saveSettings({ monthly_limit: parseFloat($('setMonthly').value) || 0 }));
   $('setHideTokens').addEventListener('change', () => { store.set('hideTokens', $('setHideTokens').checked ? '1' : '0'); hideTokens = $('setHideTokens').checked; render(); });
   $('setFont').addEventListener('input', () => { store.set('fontSize', $('setFont').value); applyLook(); });
   $('setArchive').addEventListener('change', () => saveSettings({ auto_archive_days: +$('setArchive').value }));
-  $('setPhone').addEventListener('change', async () => {
-    const on = $('setPhone').checked;
-    if (on && !settings.pin_set && !$('setPin').value) { alert('Choose a PIN first (4–8 digits), so nobody else on your Wi-Fi can open your checklist.'); $('setPhone').checked = false; return; }
-    await saveSettings({ phone_access: on });
-    alert(on ? 'Phone access is set. Restart the checklist (double-click Start Checklist.command) to turn it on.\n\nYour Mac may ask whether to allow incoming connections for Python: choose Allow.'
-             : 'Phone access is off after the next restart.');
-  });
-  $('setPin').addEventListener('change', async () => {
-    const pin = $('setPin').value.replace(/\D/g, '');
-    if (pin && pin.length < 4) return alert('Use at least 4 digits.');
-    await saveSettings({ pin });
-    $('setPin').value = '';
-    toast(pin ? 'PIN saved' : 'PIN removed');
-  });
   $('setTheme').addEventListener('change', () => { store.set('theme', $('setTheme').value); applyLook(); });
   // One-click light / dark in the top bar (the brand theme counts as light)
   const themeBtn = $('themeBtn');
