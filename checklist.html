@@ -1,0 +1,1854 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="lfs-build" content="3ff207b">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Checklist</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#577249">
+<style>
+  :root {
+    --bg: #ffffff;
+    --text: #2a3135;
+    --muted: #6b7177;
+    --line: #e7e9ea;
+    --hover: #f2f3f4;
+    --bullet: #4b5155;
+    --halo: #dcdfe1;
+    --accent: #49baf2;
+    --danger: #d9534f;
+    --claude: #c96442;
+    --today: #e5793b;
+    --someday: #7b8794;
+  }
+  /* Themes (idea 43): Auto follows the Mac; Light, Dark and Live Free brand can be picked in Settings */
+  :root[data-theme=brand] {
+    --bg: #f6f3ed; --text: #3c1a2c; --muted: #6f5e66; --line: #e4ddd2; --hover: #ede7dd;
+    --bullet: #3c1a2c; --halo: #ddd3c5; --accent: #577249; --claude: #b5562f; --today: #c46a2b; --someday: #7d6e75;
+  }
+  :root[data-theme=dark] {
+    --bg: #1f2124; --text: #e3e5e6; --muted: #959ba0; --line: #33363a; --hover: #2a2d31; --bullet: #c9cdd0;
+    --halo: #44484d; --danger: #ff6b66; --claude: #e08a6a; --today: #f08c4e; --someday: #98a3ae;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+      --bg: #1f2124;
+      --text: #e3e5e6;
+      --muted: #959ba0;
+      --line: #33363a;
+      --hover: #2a2d31;
+      --bullet: #c9cdd0;
+      --halo: #44484d;
+      --accent: #49baf2;
+      --danger: #ff6b66;
+      --claude: #e08a6a;
+      --today: #f08c4e;
+      --someday: #98a3ae;
+    }
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  /* Keyboard focus is always visible */
+  button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px;
+  }
+  .row.editing { box-shadow: inset 2px 0 0 var(--accent); }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Top bar */
+  .topbar {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    height: 46px; padding: 0 20px;
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .crumbs { display: flex; align-items: center; gap: 4px; min-width: 0; font-size: 13px; color: var(--muted); overflow: hidden; }
+  .crumbs a { color: var(--muted); text-decoration: none; padding: 2px 6px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; cursor: pointer; }
+  .crumbs a:hover { background: var(--hover); color: var(--text); }
+  .crumbs .sep { opacity: .6; }
+  .crumbs svg { width: 15px; height: 15px; display: block; }
+  #status { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+  main { max-width: 820px; margin: 0 auto; padding: 36px 24px 120px 56px; }
+  #warning {
+    display: none;
+    background: #fff4d6; color: #6b4e00;
+    border-radius: 8px; padding: 10px 14px; margin: 0 0 24px -32px; font-size: 14px;
+  }
+
+  /* Page title */
+  .title {
+    display: block; width: 100%; resize: none; overflow: hidden;
+    border: 0; outline: 0; background: transparent; color: var(--text);
+    font-family: inherit; font-size: 30px; font-weight: 700; line-height: 1.25; padding: 0; margin: 0 0 18px;
+  }
+  .title[readonly] { cursor: default; }
+
+  /* Outline */
+  ul { list-style: none; margin: 0; padding: 0; }
+  li ul { margin-left: 8px; padding-left: 22px; border-left: 1px solid var(--line); }
+  li.collapsed > ul { display: none; }
+
+  .row { position: relative; display: flex; align-items: flex-start; gap: 6px; padding: 2px 0; border-radius: 4px; }
+
+  .arrow {
+    position: absolute; left: -26px; top: 5px;
+    width: 18px; height: 18px; padding: 0; border: 0; background: transparent; border-radius: 4px;
+    color: var(--muted); cursor: pointer; opacity: 0; transition: opacity .12s;
+    display: grid; place-items: center;
+  }
+  .arrow svg { width: 10px; height: 10px; transition: transform .15s; transform: rotate(90deg); }
+  li.collapsed > .row .arrow svg { transform: rotate(0deg); }
+  .row:hover .arrow.has-kids, li.collapsed > .row .arrow.has-kids:focus-visible { opacity: 1; }
+  .arrow:hover { background: var(--hover); color: var(--text); }
+
+  .bullet {
+    flex: none; width: 18px; height: 18px; margin-top: 3px; padding: 0;
+    border: 0; border-radius: 50%; background: transparent; cursor: pointer;
+    display: grid; place-items: center;
+  }
+  .bullet::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--bullet); }
+  .bullet:hover { background: var(--hover); }
+  li.collapsed > .row .bullet { background: var(--halo); }
+
+  .check {
+    flex: none; appearance: none; -webkit-appearance: none;
+    width: 15px; height: 15px; margin: 5px 2px 0 0;
+    border: 1.5px solid var(--muted); border-radius: 4px; background: transparent; cursor: pointer;
+    display: grid; place-items: center; transition: background .12s, border-color .12s;
+  }
+  .check:hover { border-color: var(--text); }
+  .check:checked { background: var(--accent); border-color: var(--accent); }
+  .check:checked::after {
+    content: ""; width: 4px; height: 8px; margin-top: -2px;
+    border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg);
+  }
+
+  .text {
+    flex: 1; min-width: 0; resize: none; overflow: hidden;
+    border: 0; outline: 0; background: transparent; color: inherit;
+    font: inherit; line-height: 1.6; padding: 0; margin: 0; height: 24px;
+  }
+  .text::placeholder { color: var(--muted); }
+  li.done .text { text-decoration: line-through; color: var(--muted); }
+  li.done li .check { opacity: .5; }
+
+  .trash {
+    flex: none; margin-top: 2px; border: 0; background: transparent; cursor: pointer;
+    color: var(--danger); font-family: inherit; font-size: 12px; line-height: 1; padding: 5px 7px; border-radius: 4px;
+    opacity: .75;
+  }
+  .trash:hover { opacity: 1; background: color-mix(in srgb, var(--danger) 12%, transparent); }
+
+  #add {
+    display: flex; align-items: center; gap: 8px; margin-top: 6px;
+    border: 0; background: transparent; color: var(--muted); font: inherit; cursor: pointer; padding: 2px 0;
+  }
+  #add span { width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; font-size: 17px; line-height: 1; }
+  #add:hover { color: var(--text); }
+  #add:hover span { background: var(--hover); }
+
+  .help { margin-top: 56px; font-size: 12.5px; color: var(--muted); line-height: 2; }
+  .help kbd { border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; font: 11px ui-monospace, monospace; }
+
+  .left, .right { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .tabs { display: flex; gap: 2px; background: var(--hover); border-radius: 7px; padding: 2px; flex: none; }
+  .tab { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 5px; cursor: pointer; }
+  .tab.active { background: var(--bg); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  #search { width: 160px; border: 1px solid var(--line); background: var(--bg); color: var(--text); border-radius: 6px; padding: 4px 9px; font: inherit; font-size: 13px; outline: 0; }
+  #search:focus { border-color: var(--accent); }
+  .pill { border: 1px solid var(--line); background: transparent; color: var(--muted); font: inherit; font-size: 12px; padding: 4px 9px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
+  .pill.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .count { flex: none; font-size: 11.5px; color: var(--muted); background: var(--hover); border-radius: 10px; padding: 1px 7px; margin-top: 3px; }
+  .count.full { color: #fff; background: #5cb85c; }
+  .capture-wrap { position: relative; margin: 0 0 22px -32px; width: calc(100% + 32px); }
+  .capture-wrap[hidden] { display: none; }
+  .capture {
+    display: block; width: 100%;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--hover); color: var(--text);
+    font: inherit; font-size: 16px; padding: 12px 190px 12px 14px; outline: 0;
+  }
+  .capture:focus { border-color: var(--accent); background: var(--bg); }
+  .when { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); display: flex; gap: 2px; background: var(--bg); border: 1px solid var(--line); border-radius: 7px; padding: 2px; }
+  .when button { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 12.5px; font-weight: 600; padding: 4px 10px; border-radius: 5px; cursor: pointer; }
+  .when button.on[data-when=today] { background: var(--today); color: #fff; }
+  .when button.on[data-when=someday] { background: var(--someday); color: #fff; }
+  .when-tag {
+    flex: none; border: 0; cursor: pointer; font-family: inherit; font-size: 11px; font-weight: 600;
+    padding: 2px 8px; border-radius: 10px; margin-top: 3px;
+  }
+  .when-tag.today { color: var(--today); background: color-mix(in srgb, var(--today) 14%, transparent); }
+  .when-tag.someday { color: var(--someday); background: color-mix(in srgb, var(--someday) 14%, transparent); }
+  .when-tag:hover { filter: brightness(.9); }
+  @media (max-width: 600px) { .capture { padding-right: 14px; padding-bottom: 50px; } .when { top: auto; bottom: 8px; transform: none; } }
+
+  /* Claude */
+  .ai-bar { display: flex; gap: 8px; margin: -6px 0 20px -32px; }
+  .ai-btn {
+    display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--bg);
+    color: var(--text); font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+  }
+  .ai-btn:hover { border-color: var(--claude); }
+  .ai-btn[hidden], #undoBtn[hidden] { display: none; }
+  .spark { color: var(--claude); }
+  .breakdown {
+    flex: none; opacity: 0; border: 0; background: transparent; cursor: pointer;
+    color: var(--claude); font-family: inherit; font-size: 12px; padding: 4px 6px; border-radius: 4px; margin-top: 1px;
+  }
+  .row:hover .breakdown { opacity: 1; }
+  .breakdown:hover { background: var(--hover); }
+  body.busy { cursor: progress; }
+  body.busy .ai-btn, body.busy .breakdown { pointer-events: none; opacity: .45; }
+  .focus {
+    margin: 0 0 24px -32px; padding: 14px 16px; border-radius: 10px;
+    border: 1px solid color-mix(in srgb, var(--claude) 35%, var(--line));
+    background: color-mix(in srgb, var(--claude) 6%, var(--bg));
+  }
+  .focus[hidden] { display: none; }
+  .focus h3 { margin: 0 0 2px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--claude); display: flex; justify-content: space-between; align-items: center; }
+  .focus .note { color: var(--muted); font-size: 13.5px; margin: 0 0 10px; }
+  .focus-item { display: flex; gap: 10px; align-items: flex-start; padding: 5px 0; }
+  .focus-item b { font-weight: 600; cursor: pointer; }
+  .focus-item b:hover { text-decoration: underline; }
+  .focus-item .why { display: block; color: var(--muted); font-size: 13px; }
+  .focus-item.done b { text-decoration: line-through; color: var(--muted); }
+  /* Inline syntax chips: #tag @client ~15m due:2026-11-02 i:5 (ideas 01, 02, 12, 13, 34, 47, 65) */
+  /* Chips sit on their own line under the text, so long items stay readable */
+  .row { flex-wrap: wrap; }
+  .row .text { flex: 1 1 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; order: 10; flex-basis: 100%; padding-left: 47px; margin: 0 0 2px; }
+  .chip { font-size: 11px; line-height: 1.6; padding: 0 7px; border-radius: 9px; background: var(--hover); color: var(--muted); white-space: nowrap; }
+  .chip.t-revenue { background: #e3f1e0; color: #2f6b2a; }
+  .chip.t-outreach, .chip.t-social { background: #eee6fa; color: #6a3fb5; }
+  .chip.t-tools, .chip.t-deep { background: #e2eefb; color: #2f62a8; }
+  .chip.t-blocked, .chip.blocked, .chip.overdue { background: #fbe4e2; color: #b3352c; }
+  .chip.t-today, .chip.soon { background: #fdebdc; color: #b3591c; }
+  .chip.t-waiting { background: #fff4d1; color: #8a6400; }
+  .chip.client { background: transparent; border: 1px solid var(--line); }
+  .chip.stale { background: #f1efe9; color: #8a7a5a; }
+  .chip.doing { background: var(--accent); color: #fff; }
+  .chip.scope { background: #fff0e0; color: #a5520f; }
+  li.blocked > .row .text { opacity: .55; }
+  li.doing > .row { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+  /* Hover buttons float over the right edge, so the text never re-wraps when they appear */
+  .acts {
+    position: absolute; right: 0; top: 1px; z-index: 2; display: flex; gap: 2px; opacity: 0; pointer-events: none;
+    padding: 0 2px 0 28px; background: linear-gradient(to right, transparent, var(--bg) 24px);
+  }
+  .row:hover .acts { opacity: 1; pointer-events: auto; }
+  .row.editing .acts { display: none; }
+  .act { border: 0; background: transparent; cursor: pointer; color: var(--muted); font-family: inherit; font-size: 12px; padding: 4px 6px; border-radius: 4px; }
+  .act:hover { background: var(--hover); color: var(--text); }
+  .act.claude { color: var(--claude); }
+  body:not(.claude-on) .claude-only { display: none !important; }
+  @media (hover: none) { .acts { position: static; opacity: 1; pointer-events: auto; background: none; padding: 0; flex: none; } .act:not(.claude) span.lbl { display: none; } }
+
+  /* Tidy display: the raw text box only shows while you edit an item */
+  .row { position: relative; }
+  /* Rows off-screen skip layout until you scroll to them (big lists stay quick) */
+  #root li > .row { content-visibility: auto; contain-intrinsic-size: auto 28px; }
+  .row:not(.editing) > .text { position: absolute; opacity: 0; pointer-events: none; height: 0 !important; width: 1px; overflow: hidden; }
+  .row.editing > .disp { display: none; }
+  .disp { flex: 1 1 0; min-width: 0; line-height: 1.6; cursor: text; white-space: pre-wrap; word-break: break-word; min-height: 24px; }
+  .disp.muted { color: var(--muted); }
+  .disp a { color: var(--accent); text-decoration: none; }
+  .disp a:hover { text-decoration: underline; }
+  .disp mark { background: #fff1a8; color: #3a3000; border-radius: 3px; padding: 0 2px; }
+  .disp mark.hit { background: #ffd54a; }
+  li.done .disp { text-decoration: line-through; color: var(--muted); }
+  .note { order: 11; flex-basis: 100%; margin: 0 0 4px 47px; border: 0; outline: 0; resize: none; overflow: hidden; background: transparent; color: var(--muted); font: inherit; font-size: 13.5px; line-height: 1.5; padding: 0; min-height: 20px; }
+  .bullet.has-icon { font-size: 13px; line-height: 18px; }
+  .bullet.has-icon::after { display: none; }
+  li.mirror > .row .bullet::after { background: transparent; border: 1.5px solid var(--bullet); width: 5px; height: 5px; }
+  .chip.mirror-chip { order: 9; align-self: center; }
+  li.selected > .row { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+  :root { --c-red: #d64541; --c-orange: #e07b24; --c-yellow: #b8930a; --c-green: #3d8b40; --c-blue: #2f6fd6; --c-purple: #8a4fd0; --c-gray: #8a8f98; }
+  li[data-color] > .row { box-shadow: inset 3px 0 0 var(--c-x, transparent); }
+  li[data-color=red] > .row { --c-x: var(--c-red); } li[data-color=orange] > .row { --c-x: var(--c-orange); }
+  li[data-color=yellow] > .row { --c-x: var(--c-yellow); } li[data-color=green] > .row { --c-x: var(--c-green); }
+  li[data-color=blue] > .row { --c-x: var(--c-blue); } li[data-color=purple] > .row { --c-x: var(--c-purple); }
+  li[data-color=gray] > .row { --c-x: var(--c-gray); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line); flex: none; }
+  .dot.saved { background: #4caf50; } .dot.saving { background: #f0a020; } .dot.error, .dot.offline { background: #e04848; }
+  body { font-size: var(--font-size, 15px); }
+
+  /* Density (idea 46) */
+  body.compact { font-size: 14px; }
+  body.compact .row { padding: 0; }
+  body.compact .text { line-height: 1.4; }
+
+  /* Claude switch + settings */
+  .claude-switch { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: inherit; font-size: 12px; padding: 3px 9px 3px 4px; border-radius: 14px; cursor: pointer; white-space: nowrap; }
+  .claude-switch .knob { width: 26px; height: 16px; border-radius: 8px; background: var(--line); position: relative; transition: background .15s; }
+  .claude-switch .knob::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; transition: left .15s; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  body.claude-on .claude-switch { color: var(--text); border-color: color-mix(in srgb, var(--claude) 40%, var(--line)); }
+  body.claude-on .claude-switch .knob { background: var(--claude); }
+  body.claude-on .claude-switch .knob::after { left: 12px; }
+  .gear { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 17px; padding: 2px 6px; border-radius: 5px; }
+  .gear:hover { background: var(--hover); color: var(--text); }
+  .settings { position: fixed; top: 52px; right: 16px; z-index: 20; width: min(340px, calc(100vw - 32px)); background: var(--bg); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.15); padding: 16px; font-size: 14px; }
+  .settings[hidden] { display: none; }
+  .settings h4 { margin: 14px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .settings h4:first-child { margin-top: 0; }
+  .settings label { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 0; }
+  .settings select, .settings input[type=number] { font: inherit; font-size: 13px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--text); }
+  .settings input[type=number] { width: 80px; }
+  .settings .note { color: var(--muted); font-size: 12.5px; margin: 4px 0; }
+  .settings .usage-list { max-height: 140px; overflow: auto; font-size: 12px; color: var(--muted); margin: 6px 0 0; padding: 0; list-style: none; }
+
+  .focus .close { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 16px; line-height: 1; padding: 2px 4px; }
+
+  @media (max-width: 1000px) {
+    .topbar { overflow-x: auto; }
+    #status { display: none; }
+    #search { width: 110px; }
+  }
+  @media (max-width: 600px) {
+    #search { width: 90px; }
+    .crumbs { display: none; }
+    main { padding: 24px 16px 100px 36px; }
+    .topbar { padding: 0 16px; }
+    .title { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="left">
+    <div class="tabs">
+      <button class="tab" id="tabList">Checklist</button>
+      <button class="tab" id="tabDump">Brain Dump</button>
+      <button class="tab" id="tabViews">Views</button>
+    </div>
+    <nav class="crumbs" id="crumbs"></nav>
+  </div>
+  <div class="right">
+    <input id="search" type="search" placeholder="Search  ( / )" aria-label="Search the list">
+    <button class="pill" id="undoBtn" hidden title="Undo Claude's last change">Undo Claude</button>
+    <button class="pill" id="hideDone" title="Hide checked items">Hide done</button>
+    <button class="claude-switch" id="claudeSwitch" hidden role="switch" aria-checked="false" title="Turn Claude on or off. While it's off, nothing can be charged."><span class="knob"></span><span id="claudeLabel">Claude off</span></button>
+    <button class="pill watch" id="watchBtn" title="Work stopwatch: click to start or stop">⏱ Start</button>
+    <button class="gear" id="themeBtn" title="Switch light / dark" aria-label="Switch light or dark mode">☾</button>
+    <button class="gear" id="settingsBtn" title="Settings" aria-label="Settings" aria-haspopup="dialog">⚙</button>
+    <span class="dot" id="saveDot" title="" role="img" aria-label="Save status"></span>
+    <span id="status" role="status" aria-live="polite"></span>
+  </div>
+</div>
+<div class="settings" id="settings" hidden role="dialog" aria-label="Settings">
+  <!-- Claude features are turned off in the Supabase version; kept hidden so older code still finds them -->
+  <div hidden>
+  <h4>Claude</h4>
+  <label>Claude features <select id="setClaude"><option value="off">Off (nothing is charged)</option><option value="on">On</option></select></label>
+  <label>Ask before each Claude action <input type="checkbox" id="setConfirm"></label>
+  <label>Daily spending limit ($) <input type="number" id="setLimit" min="0" step="0.25"></label>
+  <label>Monthly spending limit ($) <input type="number" id="setMonthly" min="0" step="1"></label>
+  <p class="note" id="usageNote"></p>
+  <ul class="usage-list" id="usageList"></ul>
+  </div>
+  <h4>Account</h4>
+  <label><span>Your list is saved in Supabase and syncs to any device you sign in on.</span> <button class="pill" type="button" onclick="window.checklistSignOut && window.checklistSignOut()">Sign out</button></label>
+  <h4>Look</h4>
+  <label>Theme <select id="setTheme"><option value="">Auto (follow Mac)</option><option value="light">Light</option><option value="dark">Dark</option><option value="brand">Live Free brand</option></select></label>
+  <label>Density <select id="setDensity"><option value="">Comfortable</option><option value="compact">Compact</option></select></label>
+  <label>Confetti when you check something off <input type="checkbox" id="setConfetti"></label>
+  <label>Hide #tags and dates in the text (shown as chips) <input type="checkbox" id="setHideTokens"></label>
+  <label>Text size <input type="range" id="setFont" min="13" max="20" step="1" style="width:120px"></label>
+  <h4>Tidying</h4>
+  <label>Archive finished items after <select id="setArchive"><option value="0">Never</option><option value="7">7 days</option><option value="14">14 days</option><option value="30">30 days</option><option value="90">90 days</option></select></label>
+  <div hidden>
+  <h4>Phone</h4>
+  <label>Open on my phone over Wi-Fi <input type="checkbox" id="setPhone"></label>
+  <label>PIN (4–8 digits) <input type="password" id="setPin" inputmode="numeric" maxlength="8" placeholder="none" style="width:90px;font:inherit;font-size:13px;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--text)"></label>
+  <p class="note" id="phoneNote"></p>
+  </div>
+  <h4>Reminders</h4>
+  <label>Mac notifications (8am top 3, 2pm nudge, overdue, Friday review) <input type="checkbox" id="setNotify"></label>
+  <p class="note">Notifications are free (no Claude) and never sent between 9pm and 7am.</p>
+  <h4>Help</h4>
+  <label>New here, or need a refresher? <button class="pill" type="button" onclick="document.getElementById('settings').hidden = true; window.startTour && window.startTour()">Replay the tour</button></label>
+</div>
+<main>
+  <div id="warning">Can't reach Supabase right now, so your changes are kept in this browser. They upload by themselves as soon as you're back online.</div>
+  <textarea class="title" id="title" rows="1" spellcheck="false"></textarea>
+  <div class="capture-wrap" id="captureWrap" hidden>
+    <input class="capture" id="capture" aria-label="Add to the Brain Dump" placeholder="Has to get done today… (Tab switches to Someday)">
+    <div class="when" id="when">
+      <button data-when="today" class="on" tabindex="-1">Today</button>
+      <button data-when="someday" tabindex="-1">Someday</button>
+    </div>
+  </div>
+  <div class="ai-bar">
+    <button class="ai-btn claude-only" id="sortBtn" hidden><span class="spark">✦</span>Sort my brain dump</button>
+    <button class="ai-btn claude-only" id="planBtn" hidden><span class="spark">✦</span>What should I do today?</button>
+    <button class="ai-btn claude-only" id="notesBtn" hidden><span class="spark">✦</span>Notes or screenshot → tasks</button>
+  </div>
+  <div class="focus" id="focus" hidden></div>
+  <div id="views" hidden></div>
+  <div id="root"></div>
+  <div class="add-row"><button id="add"><span>+</span>Add item</button></div>
+  <details class="help"><summary>Help &amp; shortcuts (press ? for the full list)</summary>
+    <kbd>Enter</kbd> new item &nbsp;·&nbsp; <kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd> indent / outdent &nbsp;·&nbsp;
+    <kbd>⌘</kbd>+<kbd>Enter</kbd> check off &nbsp;·&nbsp; <kbd>⌘</kbd>+<kbd>↑</kbd> / <kbd>⌘</kbd>+<kbd>↓</kbd> collapse / expand<br>
+    Click a bullet (or <kbd>⌥</kbd>+<kbd>→</kbd>) to zoom in, <kbd>⌥</kbd>+<kbd>←</kbd> to zoom out &nbsp;·&nbsp;
+    Checked items get a <b>Delete</b> button that moves them to Deleted Items.<br>
+    <kbd>⌘</kbd>+<kbd>Shift</kbd>+<kbd>↑</kbd> / <kbd>↓</kbd> move item up / down &nbsp;·&nbsp; <kbd>/</kbd> search &nbsp;·&nbsp;
+    <b>Brain Dump</b> gives you a fresh list each day; older days fold up underneath.<br>
+
+    Type these into any item: <b>#tag</b> &nbsp;<b>@client</b> &nbsp;<b>~15m</b> or <b>~2h</b> (time) &nbsp;<b>due:2026-11-02</b> &nbsp;<b>i:5</b> (impact 1–5) &nbsp;<b>e:2</b> (effort 1–5) &nbsp;<b>blocked-by:"other task"</b>.
+    Tags like #revenue #outreach #deep #shallow #social #waiting #today power the <b>Views</b> tab.<br>
+    <kbd>⌘</kbd>+<kbd>K</kbd> quick add from anywhere &nbsp;·&nbsp; hover an item for <b>Start</b>, <b>Focus</b> (25-min timer) and <b>Copy for Claude Code</b> &nbsp;·&nbsp; on a phone, swipe right to check off, left to snooze to tomorrow.
+  </details>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="db.js"></script>
+<script>
+const root = document.getElementById('root');
+const titleEl = document.getElementById('title');
+const crumbsEl = document.getElementById('crumbs');
+const statusEl = document.getElementById('status');
+const HOME_ICON = '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2.5 2 9h2.5v8h4.25v-5h2.5v5h4.25V9H18z"/></svg>';
+const ARROW_ICON = '<svg viewBox="0 0 10 10" fill="currentColor"><path d="M3 1.5 7.5 5 3 8.5z"/></svg>';
+
+let data = [];
+let online = false;
+let saveTimer = null;
+let zoomId = null;
+let query = '';
+let hideDone = false;
+try { hideDone = localStorage.getItem('hideDone') === '1'; } catch {}
+
+const DUMP = 'braindump'; // the Brain Dump lives in the list as one special item
+const SOMEDAY = 'someday';
+let captureWhen = 'today';
+const captureEl = document.getElementById('capture');
+const searchEl = document.getElementById('search');
+const hideBtn = document.getElementById('hideDone');
+
+const uid = () => Math.random().toString(36).slice(2, 10);
+const newItem = (text = '') => {
+  const now = Date.now();
+  return { id: uid(), text, done: false, collapsed: false, children: [], created: now, updated: now };
+};
+
+// Reads the inline syntax out of an item's text: #tag @client ~15m due:2026-11-02 i:4 e:2 blocked-by:"task"
+const metaCache = new Map();
+function meta(text = '') {
+  let hit = metaCache.get(text);
+  if (hit) return hit;
+  if (metaCache.size > 20000) metaCache.clear();
+  hit = parseMeta(text);
+  metaCache.set(text, hit);
+  return hit;
+}
+function parseMeta(text) {
+  const est = text.match(/~(\d+)(m|h)\b/);
+  const due = text.match(/(?:due:|!)(\d{4}-\d{2}-\d{2})/);
+  const imp = text.match(/\bi:(\d)\b/);
+  const eff = text.match(/\be:(\d)\b/);
+  const blk = text.match(/blocked-by:"([^"]+)"/);
+  return {
+    tags: [...text.matchAll(/(?:^|\s)#([\w-]+)/g)].map(m => m[1].toLowerCase()),
+    clients: [...text.matchAll(/(?:^|\s)@([\w-]+)/g)].map(m => m[1].toLowerCase()),
+    est: est ? +est[1] * (est[2] === 'h' ? 60 : 1) : null,
+    due: due ? due[1] : null,
+    impact: imp ? +imp[1] : 3,
+    effort: eff ? Math.max(1, +eff[1]) : 3,
+    blockedBy: blk ? blk[1] : null,
+    clean: text.replace(/(?:^|\s)[#@][\w-]+/g, ' ').replace(/(?:due:|!)\d{4}-\d{2}-\d{2}/, '')
+      .replace(/\b[ie]:\d\b/g, '').replace(/~\d+[mh]\b/, '').replace(/blocked-by:"[^"]*"/, '').replace(/\bevery:[\w:,]+/, '').replace(/\s+/g, ' ').trim()
+  };
+}
+
+const dayMs = 864e5;
+// Whole days from today's date to `d` (negative = overdue)
+const daysUntil = d => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.round((new Date(d + 'T00:00:00') - today) / dayMs);
+};
+function dueLabel(d) {
+  const n = daysUntil(d);
+  return n < 0 ? 'overdue ' + (-n) + 'd' : n === 0 ? 'due today' : n === 1 ? 'due tomorrow' : 'due in ' + n + 'd';
+}
+// Impact score (idea 07): money / effort, revenue work counts double
+const score = m => +(m.impact * (m.tags.includes('revenue') ? 2 : 1) / m.effort).toFixed(2);
+const isStale = it => !it.done && it.updated && Date.now() - it.updated > 7 * dayMs;
+const SCOPE_WORDS = ['custom app', 'mobile app', 'integration', ' api', 'e-commerce', 'ecommerce', 'membership', 'multi-location', 'extra pages', 'migration'];
+const scopeHits = text => SCOPE_WORDS.filter(k => (' ' + text.toLowerCase()).includes(k));
+
+// Open item texts, for blocked-by lookups (idea 13)
+let openTexts = new Set();
+function collectOpen(list = data) {
+  for (const it of list) {
+    if (!it.done) openTexts.add(meta(it.text).clean.toLowerCase());
+    collectOpen(it.children);
+  }
+}
+const isBlocked = m => !!m.blockedBy && openTexts.has(m.blockedBy.trim().toLowerCase());
+
+// Every check-off goes through here so the done log, streaks and confetti stay in step
+// Time actually spent (from Start/Pause and Focus) is kept in minutes on the item
+function stopClock(it) {
+  if (it.doingSince) {
+    it.spent = Math.round(((it.spent || 0) + (Date.now() - it.doingSince) / 60000) * 10) / 10;
+    delete it.doingSince;
+  }
+}
+
+// Recurring items: every:day, every:weekday, every:week, every:2weeks, every:month, every:month:15, every:mon,wed
+function nextOccurrence(rule, from) {
+  const d = new Date(from + 'T12:00:00');
+  const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+  const step = n => d.setDate(d.getDate() + n);
+  rule = rule.toLowerCase();
+  if (rule === 'day' || rule === 'daily') step(1);
+  else if (rule === 'weekday' || rule === 'weekdays') { do step(1); while (d.getDay() === 0 || d.getDay() === 6); }
+  else if (rule === 'week' || rule === 'weekly') step(7);
+  else if (/^(\d+)weeks?$/.test(rule)) step(7 * +rule.match(/\d+/)[0]);
+  else if (/^month(:\d+)?$/.test(rule) || rule === 'monthly') {
+    const dayOfMonth = rule.includes(':') ? +rule.split(':')[1] : d.getDate();
+    d.setDate(1); d.setMonth(d.getMonth() + 1);
+    d.setDate(Math.min(dayOfMonth, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()));
+  } else {
+    const want = rule.split(',').map(x => days.indexOf(x.slice(0, 3))).filter(x => x >= 0);
+    if (!want.length) return null;
+    do step(1); while (!want.includes(d.getDay()));
+  }
+  return d.toLocaleDateString('en-CA');
+}
+
+function markDone(it, done) {
+  it.done = done;
+  it.updated = Date.now();
+  if (done) {
+    stopClock(it);
+    it.doing = false;
+    it.doneAt = it.updated;
+    // A recurring item makes its next copy, with the next due date, right after itself
+    const rule = (it.text.match(/\bevery:([\w:,]+)/) || [])[1];
+    if (rule) {
+      const due = meta(it.text).due;
+      const from = due && due > todayKey() ? due : todayKey();
+      const next = nextOccurrence(rule, from);
+      const r = find(it.id);
+      if (next && r) {
+        const copy = JSON.parse(JSON.stringify(it));
+        (function fresh(x) {
+          x.id = uid(); x.done = false; x.created = x.updated = Date.now();
+          delete x.doneAt; delete x.spent; delete x.pomos; x.children.forEach(fresh);
+        })(copy);
+        copy.text = /(?:due:|!)\d{4}-\d{2}-\d{2}/.test(copy.text) ? copy.text.replace(/(?:due:|!)\d{4}-\d{2}-\d{2}/, 'due:' + next) : copy.text + ' due:' + next;
+        r.list.splice(r.i + 1, 0, copy);
+        toast('Next one added for ' + new Date(next + 'T12:00').toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }));
+      }
+    }
+    if (online) {
+      fetch('/api/done', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: it.text, tags: meta(it.text).tags })
+      }).catch(() => {});
+    }
+    if (window.celebrate) window.celebrate();
+  }
+}
+
+// Only one task in progress at a time (idea 05)
+function setDoing(id) {
+  const r = find(id);
+  if (!r) return;
+  const starting = !r.it.doing;
+  (function clear(list) { for (const it of list) { if (it.doing) stopClock(it); it.doing = false; clear(it.children); } })(data);
+  r.it.doing = starting;
+  if (starting) r.it.doingSince = Date.now();
+  r.it.updated = Date.now();
+  render();
+  save();
+  setStatus(starting ? 'Working on: ' + meta(r.it.text).clean : 'Paused');
+}
+
+function find(id, list = data, parent = null) {
+  for (let i = 0; i < list.length; i++) {
+    const it = list[i];
+    if (it.id === id) return { it, list, i, parent };
+    const r = find(id, it.children, it);
+    if (r) return r;
+  }
+  return null;
+}
+
+function ancestors(id) {
+  const out = [];
+  for (let r = find(id); r && r.parent; r = find(r.parent.id)) out.unshift(r.parent);
+  return out;
+}
+
+function currentList() {
+  const z = zoomId && find(zoomId);
+  return z ? z.it.children : data;
+}
+
+// Search box: plain words plus filters like #tag @client is:overdue is:week is:doing is:today is:notes is:snoozed
+function parseQuery(q) {
+  const out = { words: [], tags: [], clients: [], is: [] };
+  for (const w of q.split(/\s+/).filter(Boolean)) {
+    if (w[0] === '#' && w.length > 1) out.tags.push(w.slice(1));
+    else if (w[0] === '@' && w.length > 1) out.clients.push(w.slice(1));
+    else if (w.startsWith('is:')) out.is.push(w.slice(3));
+    else out.words.push(w);
+  }
+  return out;
+}
+const isSnoozed = it => !!it.snooze && it.snooze > todayKey();
+let showSnoozed = false;
+function itemMatches(it) {
+  const q = parseQuery(query);
+  const text = (it.text + ' ' + (it.note || '')).toLowerCase();
+  const m = meta(it.text);
+  if (!q.words.every(w => text.includes(w))) return false;
+  if (!q.tags.every(t => m.tags.includes(t))) return false;
+  if (!q.clients.every(c => m.clients.includes(c))) return false;
+  for (const f of q.is) {
+    const d = m.due ? daysUntil(m.due) : null;
+    if (f === 'overdue' && !(d !== null && d < 0 && !it.done)) return false;
+    if (f === 'week' && !(d !== null && d >= 0 && d <= 7)) return false;
+    if (f === 'today' && !(m.tags.includes('today') || (d !== null && d <= 0))) return false;
+    if (f === 'doing' && !it.doing) return false;
+    if (f === 'notes' && !it.note) return false;
+    if (f === 'snoozed' && !isSnoozed(it)) return false;
+    if (f === 'done' && !it.done) return false;
+    if (f === 'open' && it.done) return false;
+  }
+  return true;
+}
+const matches = it => itemMatches(it) || it.children.some(matches);
+
+// Whether an item shows on screen right now (search, Hide done, snoozed, Brain Dump tab)
+function shown(it) {
+  if (it.id === DUMP) return false;
+  if (hideDone && it.done) return false;
+  if (isSnoozed(it) && !showSnoozed && !query.includes('is:snoozed')) return false;
+  if (query && !matches(it)) return false;
+  return true;
+}
+const isOpen = it => query ? true : !it.collapsed;
+
+// Items you can reach with the arrow keys: skips anything hidden or inside a collapsed item
+function visibleIds(list = currentList(), out = []) {
+  for (const it of list) {
+    if (!shown(it)) continue;
+    out.push(it.id);
+    if (isOpen(it)) visibleIds(it.children, out);
+  }
+  return out;
+}
+
+let progressCache = new Map();
+function progress(it) {
+  const cached = progressCache.get(it);
+  if (cached) return cached;
+  let done = 0, total = 0;
+  (function walk(list) {
+    for (const c of list) { total++; if (c.done) done++; walk(c.children); }
+  })(it.children);
+  const out = { done, total };
+  progressCache.set(it, out);
+  return out;
+}
+
+const todayKey = () => new Date().toLocaleDateString('en-CA');
+const dayLabel = () => new Date().toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+
+function ensureDump() {
+  let d = find(DUMP);
+  if (!d) {
+    data.push({ id: DUMP, text: 'Brain Dump', done: false, collapsed: false, children: [] });
+    d = find(DUMP);
+  }
+  return d.it;
+}
+
+// Today's list inside the Brain Dump; a new day folds the older days away
+function ensureToday() {
+  const dump = ensureDump();
+  let day = dump.children.find(c => c.day === todayKey());
+  if (!day) {
+    day = Object.assign(newItem(dayLabel()), { day: todayKey() });
+    // Roll-over (idea 29): unfinished Today items from earlier days move into the new day
+    for (const old of dump.children) {
+      if (old.id === SOMEDAY || !old.day) continue;
+      const rolled = old.children.filter(c => !c.done);
+      old.children = old.children.filter(c => c.done);
+      day.children.push(...rolled);
+      old.collapsed = true;
+    }
+    dump.children.unshift(day);
+    save();
+  }
+  return day;
+}
+
+// Things that need doing at some point; this list stays put at the bottom of the Brain Dump
+function ensureSomeday() {
+  const dump = ensureDump();
+  let list = dump.children.find(c => c.id === SOMEDAY);
+  if (!list) {
+    list = Object.assign(newItem('Someday'), { id: SOMEDAY });
+    dump.children.push(list);
+  }
+  return list;
+}
+
+function setWhen(id, when) {
+  const r = find(id);
+  if (!r) return;
+  r.list.splice(r.i, 1);
+  const target = when === 'someday' ? ensureSomeday() : ensureToday();
+  target.children.push(r.it);
+  target.collapsed = false;
+  render();
+  save();
+}
+
+const inDump = () => zoomId === DUMP || (zoomId && ancestors(zoomId).some(a => a.id === DUMP));
+
+const inputFor = id => document.querySelector(`li[data-id="${id}"] > .row .text`);
+
+function autosize(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+function focusItem(id, caret) {
+  const el = inputFor(id);
+  if (!el) return;
+  el.focus();
+  const p = caret ?? el.value.length;
+  el.setSelectionRange(p, p);
+}
+
+function render(focusId, caret) {
+  if (zoomId && !find(zoomId)) zoomId = null;
+  if (!zoomId && !data.some(it => it.id !== DUMP)) data.unshift(newItem());
+  openTexts = new Set();
+  collectOpen();
+  progressCache = new Map();
+
+  const inViews = viewMode !== null;
+  document.getElementById('tabList').classList.toggle('active', !inDump() && !inViews);
+  document.getElementById('tabDump').classList.toggle('active', inDump() && !inViews);
+  document.getElementById('tabViews').classList.toggle('active', inViews);
+  for (const id of ['tabList', 'tabDump', 'tabViews']) {
+    const tab = document.getElementById(id);
+    if (tab.classList.contains('active')) tab.setAttribute('aria-current', 'page'); else tab.removeAttribute('aria-current');
+  }
+  document.getElementById('captureWrap').hidden = zoomId !== DUMP || inViews;
+  document.getElementById('sortBtn').hidden = zoomId !== DUMP || inViews;
+  document.getElementById('notesBtn').hidden = zoomId !== DUMP || inViews;
+  document.getElementById('planBtn').hidden = !!zoomId || inViews;
+  document.body.classList.toggle('claude-on', !!settings.claude_enabled);
+  hideBtn.classList.toggle('on', hideDone);
+  renderFocus();
+
+  // The Views tab replaces the outline with dashboards (views.js)
+  const viewsEl = document.getElementById('views');
+  viewsEl.hidden = !inViews;
+  for (const el of [root, titleEl, document.querySelector('.add-row'), document.querySelector('.list-tools'), document.querySelector('.ai-bar')]) if (el) el.hidden = inViews;
+  if (inViews) {
+    document.title = 'Views · Checklist';
+    crumbsEl.innerHTML = '';
+    if (window.renderViews) window.renderViews(viewsEl, viewMode);
+    return;
+  }
+
+  renderCrumbs();
+  const z = zoomId && find(zoomId);
+  titleEl.value = z ? z.it.text : 'Checklist';
+  titleEl.readOnly = !z;
+  titleEl.placeholder = z ? 'Untitled' : '';
+  document.title = z ? (z.it.text || 'Untitled') + ' · Checklist' : 'Checklist';
+
+  root.replaceChildren(renderList(currentList()));
+  root.querySelectorAll('.note').forEach(autosize);
+  autosize(titleEl);
+  if (focusId) focusItem(focusId, caret);
+}
+
+function renderCrumbs() {
+  crumbsEl.innerHTML = '';
+  const home = document.createElement('a');
+  home.innerHTML = HOME_ICON;
+  home.title = 'Home';
+  home.addEventListener('click', () => zoom(null));
+  crumbsEl.append(home);
+  if (!zoomId) return;
+  for (const a of [...ancestors(zoomId), find(zoomId).it]) {
+    const sep = document.createElement('span');
+    sep.className = 'sep';
+    sep.textContent = '›';
+    const link = document.createElement('a');
+    link.textContent = a.text || 'Untitled';
+    link.addEventListener('click', () => zoom(a.id));
+    crumbsEl.append(sep, link);
+  }
+}
+
+// Shows an item's text tidily: tags hidden (they appear as chips), **bold**, *italic*, ==highlight==, links
+let hideTokens = true;
+try { hideTokens = localStorage.getItem('hideTokens') !== '0'; } catch {}
+const esc = t => t.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function formatText(text) {
+  let t = hideTokens ? meta(text).clean : text;
+  const links = [];
+  t = t.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, (m, label, url) => '\u0000' + (links.push([label, url]) - 1) + '\u0000')
+       .replace(/https?:\/\/[^\s)]+/g, url => '\u0000' + (links.push([url.replace(/^https?:\/\/(www\.)?/, '').slice(0, 50), url]) - 1) + '\u0000');
+  let h = esc(t)
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+    .replace(/(^|[^*])\*([^*\s][^*]*?)\*(?!\*)/g, '$1<i>$2</i>')
+    .replace(/==(.+?)==/g, '<mark>$1</mark>');
+  const words = query ? parseQuery(query).words.filter(w => w.length > 1) : [];
+  for (const w of words) h = h.replace(new RegExp('(' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')(?![^<]*>)', 'gi'), '<mark class="hit">$1</mark>');
+  return h.replace(/\u0000(\d+)\u0000/g, (m, n) => '<a href="' + esc(links[n][1]) + '" target="_blank" rel="noopener">' + esc(links[n][0]) + '</a>');
+}
+
+function renderList(list, parent = null) {
+  const ul = document.createElement('ul');
+  // Items directly in a Brain Dump day or in Someday get a Today / Someday tag
+  const when = parent && parent.day ? 'today' : parent && parent.id === SOMEDAY ? 'someday' : null;
+  for (const it of list) {
+    if (!shown(it)) continue;
+    // A mirror shows (and edits) another item that lives somewhere else
+    const src = it.mirrorOf ? (find(it.mirrorOf) || {}).it : it;
+    const li = document.createElement('li');
+    li.dataset.id = it.id;
+    if (!src) {
+      li.className = 'mirror';
+      li.innerHTML = '<div class="row"><span class="bullet"></span><span class="disp muted">Mirror of a deleted item</span></div>';
+      const del = document.createElement('button');
+      del.className = 'trash';
+      del.textContent = 'Remove';
+      del.addEventListener('click', () => { const r = find(it.id); r.list.splice(r.i, 1); render(); save(); });
+      li.firstChild.append(del);
+      ul.append(li);
+      continue;
+    }
+    if (src.done) li.classList.add('done');
+    if (!isOpen(it) && it.children.length) li.classList.add('collapsed');
+    const m = meta(src.text);
+    if (src.doing) li.classList.add('doing');
+    if (!src.done && isBlocked(m)) li.classList.add('blocked');
+    if (it.mirrorOf) li.classList.add('mirror');
+    if (window.isSelected && window.isSelected(it.id)) li.classList.add('selected');
+    if (src.color) li.dataset.color = src.color;
+
+    const row = document.createElement('div');
+    row.className = 'row';
+
+    const arrow = document.createElement('button');
+    arrow.className = 'arrow' + (it.children.length ? ' has-kids' : '');
+    arrow.innerHTML = ARROW_ICON;
+    arrow.tabIndex = -1;
+    arrow.title = it.collapsed ? 'Expand' : 'Collapse';
+    arrow.setAttribute('aria-label', (it.collapsed ? 'Expand ' : 'Collapse ') + (meta(src.text).clean || 'item'));
+    if (it.children.length) arrow.setAttribute('aria-expanded', String(!it.collapsed));
+    arrow.addEventListener('click', () => setCollapsed(it, !it.collapsed));
+
+    const bullet = document.createElement('button');
+    bullet.className = 'bullet' + (src.icon ? ' has-icon' : '');
+    if (src.icon) bullet.textContent = src.icon;
+    bullet.tabIndex = -1;
+    bullet.title = it.mirrorOf ? 'Mirror: click to go to the original' : 'Click to zoom in · drag to move';
+    bullet.setAttribute('aria-label', 'Zoom into ' + (meta(src.text).clean || 'item'));
+    bullet.addEventListener('click', e => {
+      if (bullet.dataset.dragged) { delete bullet.dataset.dragged; return; }
+      if (e.shiftKey || e.metaKey) return window.toggleSelect && window.toggleSelect(it.id, e.shiftKey);
+      if (it.mirrorOf) return reveal(it.mirrorOf);
+      zoom(it.id);
+    });
+
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.className = 'check';
+    box.checked = src.done;
+    box.tabIndex = -1;
+    box.setAttribute('aria-label', 'Done: ' + (meta(src.text).clean || 'item'));
+    box.addEventListener('change', () => { checkpoint(); markDone(src, box.checked); render(); save(); });
+
+    const text = document.createElement('textarea');
+    text.className = 'text';
+    text.rows = 1;
+    text.value = src.text;
+    text.placeholder = 'Type here…';
+    text.setAttribute('aria-label', 'Item' + (it.children.length ? ' with ' + it.children.length + ' sub items' : '') + (src.done ? ', done' : ''));
+    text.addEventListener('input', () => {
+      if (text.value.includes('\n')) text.value = text.value.replace(/\n/g, ' ');
+      src.text = text.value;
+      src.updated = Date.now();
+      autosize(text);
+      if (window.autocomplete) window.autocomplete(text);
+      save();
+    });
+    const disp = document.createElement('div');
+    disp.setAttribute('aria-hidden', 'true'); // screen readers read the text box instead
+    if (src.created) disp.title = 'Added ' + new Date(src.created).toLocaleString([], { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    disp.className = 'disp' + (src.text ? '' : ' muted');
+    disp.innerHTML = src.text ? formatText(src.text) : 'Type here…';
+    if (src.color) { disp.style.color = 'var(--c-' + src.color + ')'; text.style.color = 'var(--c-' + src.color + ')'; }
+    disp.addEventListener('mousedown', e => {
+      if (e.target.closest('a')) return;
+      if (e.shiftKey || e.metaKey) { e.preventDefault(); return window.toggleSelect && window.toggleSelect(it.id, e.shiftKey); }
+      e.preventDefault();
+      focusItem(it.id);
+    });
+    text.addEventListener('focus', () => {
+      row.classList.add('editing');
+      autosize(text);
+      if (window.clearSelection) window.clearSelection();
+    });
+    text.addEventListener('blur', () => {
+      // Turn date words into dates (due:fri -> due:2026-11-06) and refresh the tidy view and chips
+      const fixed = window.expandDates ? window.expandDates(src.text) : src.text;
+      if (fixed !== src.text) { src.text = fixed; text.value = fixed; save(); }
+      row.classList.remove('editing');
+      disp.className = 'disp' + (src.text ? '' : ' muted');
+      disp.innerHTML = src.text ? formatText(src.text) : 'Type here…';
+      const fresh = renderChips(src);
+      const old = row.querySelector('.chips');
+      if (old) old.remove();
+      if (fresh) row.append(fresh);
+      if (window.closeAutocomplete) setTimeout(window.closeAutocomplete, 150);
+    });
+    text.addEventListener('keydown', e => onKey(e, it.id, text));
+    text.addEventListener('paste', e => window.smartPaste && window.smartPaste(e, it.id, text));
+
+    row.append(arrow, bullet, box, text, disp);
+    if (it.mirrorOf) {
+      const mark = document.createElement('span');
+      mark.className = 'chip mirror-chip';
+      mark.textContent = '◈ mirror';
+      mark.title = 'This is a mirror. Edits change the original too.';
+      row.append(mark);
+    }
+    const chips = renderChips(src);
+    if (chips) row.append(chips);
+
+    if (when) {
+      const tag = document.createElement('button');
+      tag.className = 'when-tag ' + when;
+      tag.textContent = when === 'today' ? 'Today' : 'Someday';
+      tag.title = when === 'today' ? 'Move to Someday' : 'Move to Today';
+      tag.tabIndex = -1;
+      tag.addEventListener('click', () => setWhen(it.id, when === 'today' ? 'someday' : 'today'));
+      row.append(tag);
+    }
+
+    // Hover buttons are built the first time you point at a row (keeps big lists fast)
+    if (!src.done && it.id !== SOMEDAY && !it.day && src.text.trim()) {
+      const addActs = () => { if (!row.querySelector('.acts')) row.insertBefore(renderActs(it), row.querySelector('.count, .trash, .note')); };
+      if (matchMedia('(hover: none)').matches) addActs();
+      else { row.addEventListener('mouseenter', addActs, { once: true }); row.addEventListener('focusin', addActs, { once: true }); }
+    }
+
+    if (it.children.length) {
+      const { done, total } = progress(it);
+      const count = document.createElement('span');
+      count.className = 'count' + (done === total ? ' full' : '');
+      count.textContent = done + '/' + total;
+      row.append(count);
+    }
+
+    if (src.done) {
+      const trash = document.createElement('button');
+      trash.className = 'trash';
+      trash.textContent = 'Delete';
+      trash.title = 'Move to Deleted Items';
+      trash.addEventListener('click', () => deleteItem(it.id));
+      row.append(trash);
+    }
+
+    // Notes (⇧Enter): a grey detail line under the item, for numbers, links and addresses
+    if (src.note !== undefined) {
+      const note = document.createElement('textarea');
+      note.className = 'note';
+      note.rows = 1;
+      note.value = src.note;
+      note.placeholder = 'Note…';
+      note.addEventListener('input', () => { src.note = note.value; src.updated = Date.now(); autosize(note); save(); });
+      note.addEventListener('focus', () => autosize(note));
+      note.addEventListener('keydown', e => {
+        if (e.key === 'Escape' || (e.key === 'Enter' && e.shiftKey)) { e.preventDefault(); focusItem(it.id); }
+        if (e.key === 'Backspace' && !note.value) { e.preventDefault(); delete src.note; render(it.id); save(); }
+      });
+      note.addEventListener('blur', () => { if (!src.note) { delete src.note; render(); save(); } });
+      row.append(note);
+    }
+
+    li.append(row);
+    // Folded sections aren't drawn until opened (much faster with big lists)
+    if (it.children.length && isOpen(it)) li.append(renderList(it.children, it));
+    ul.append(li);
+  }
+  return ul;
+}
+
+function renderChips(it) {
+  const m = meta(it.text);
+  const out = [];
+  const add = (cls, label, title) => out.push({ cls, label, title });
+  if (it.doing) add('doing', 'doing');
+  if (isSnoozed(it)) add('stale', '💤 until ' + new Date(it.snooze + 'T12:00').toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' }), 'Snoozed: hidden until then');
+  const rule = (it.text.match(/\bevery:([\w:,]+)/) || [])[1];
+  if (rule) add('', '↻ every ' + rule.replace(/,/g, ', '), 'Repeats: a new copy appears when you check it off');
+  for (const t of m.tags) add('t-' + t, '#' + t);
+  for (const c of m.clients) add('client', '@' + c);
+  if (m.est) add('', m.est >= 60 ? (m.est / 60).toFixed(m.est % 60 ? 1 : 0) + 'h' : m.est + 'm', 'Time estimate');
+  if (it.spent >= 1 || it.doingSince) add('', '⏱ ' + Math.round(it.spent || 0) + (m.est ? '/' + m.est : '') + 'm spent', 'Time actually spent' + (m.est ? ' vs your estimate' : ''));
+  if (it.pomos) add('', '🍅×' + it.pomos, 'Focus sessions finished');
+  if (m.due && !it.done) {
+    const n = daysUntil(m.due);
+    add(n < 0 ? 'overdue' : n <= 1 ? 'soon' : '', dueLabel(m.due), m.due);
+  }
+  if (!it.done && isBlocked(m)) add('blocked', 'blocked', 'Waiting on: ' + m.blockedBy);
+  if (isStale(it) && !it.children.length) add('stale', 'stale', 'Untouched for 7+ days: do it, delegate it, or delete it');
+  const scope = scopeHits(it.text);
+  if (scope.length && !it.done) add('scope', 'quote separately', 'Sounds beyond the $2,500 tier (' + scope.join(', ').trim() + '): quote it separately');
+  if (!out.length) return null;
+  const box = document.createElement('span');
+  box.className = 'chips';
+  for (const c of out) {
+    const s = document.createElement('span');
+    s.className = 'chip ' + c.cls;
+    s.textContent = c.label;
+    if (c.title) s.title = c.title;
+    box.append(s);
+  }
+  return box;
+}
+
+function renderActs(it) {
+  const acts = document.createElement('span');
+  acts.className = 'acts';
+  const add = (label, title, fn, cls = '') => {
+    const b = document.createElement('button');
+    b.className = 'act ' + cls;
+    b.innerHTML = label;
+    b.title = title;
+    b.setAttribute('aria-label', title);
+    b.tabIndex = -1;
+    b.addEventListener('click', fn);
+    acts.append(b);
+  };
+  add(it.doing ? '❚❚<span class="lbl"> Pause</span>' : '▶<span class="lbl"> Start</span>', it.doing ? 'Pause this task' : 'Mark as in progress (one at a time)', () => setDoing(it.id));
+  if (ancestors(it.id).some(a => a.id === DUMP)) add('➜<span class="lbl"> Move</span>', 'Move into the Checklist (free)', () => window.openMoveTo && window.openMoveTo([it.id]));
+  add('◎<span class="lbl"> Focus</span>', 'Focus mode: just this task with a 25-minute timer', () => window.openFocus && window.openFocus(it.id));
+  add('⧉<span class="lbl"> Copy for Claude Code</span>', 'Copy a ready-made prompt for this task to paste into Claude Code (free)', () => window.copyForClaude && window.copyForClaude(it.id));
+  add('✦<span class="lbl"> Break down</span>', 'Have Claude add the steps for this (uses Claude)', () => breakDown(it.id), 'claude claude-only');
+  return acts;
+}
+
+function setCollapsed(it, collapsed, focusId) {
+  if (!it.children.length) return;
+  it.collapsed = collapsed;
+  render(focusId);
+  save();
+}
+
+function cloneItem(it) {
+  const copy = JSON.parse(JSON.stringify(it));
+  (function fresh(x) { x.id = uid(); x.created = x.updated = Date.now(); x.children.forEach(fresh); })(copy);
+  return copy;
+}
+
+// Wrap the selected words in **bold**, *italic* or ==highlight==
+function wrapSelection(el, src, mark) {
+  const a = el.selectionStart, b = el.selectionEnd;
+  const v = el.value;
+  el.value = v.slice(0, a) + mark + v.slice(a, b) + mark + v.slice(b);
+  src.text = el.value;
+  el.setSelectionRange(a + mark.length, b + mark.length);
+  save();
+}
+
+function onKey(e, id, el) {
+  if (window.acKey && window.acKey(e)) return; // the #tag / @client suggestion list is open
+  const r = find(id);
+  if (!r) return;
+  const { it, list, i, parent } = r;
+  const src = it.mirrorOf ? (find(it.mirrorOf) || r).it : it;
+  const caret = el.selectionStart;
+  const mod = e.metaKey || e.ctrlKey;
+  const atZoomRoot = !parent || parent.id === zoomId;
+
+  if (e.key === 'Enter' && mod) {
+    e.preventDefault();
+    checkpoint();
+    markDone(src, !src.done);
+    render(id, caret);
+    save();
+  } else if (e.key === 'Enter' && e.shiftKey) {
+    // Add or jump to the note under this item
+    e.preventDefault();
+    if (src.note === undefined) src.note = '';
+    render(id);
+    const note = document.querySelector('li[data-id="' + id + '"] > .row .note');
+    if (note) note.focus();
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    // Enter on an empty indented item moves it back out a level
+    if (!it.text && !it.mirrorOf && !atZoomRoot) return outdent(r);
+    checkpoint();
+    if (it.mirrorOf) {
+      const next = newItem();
+      list.splice(i + 1, 0, next);
+      render(next.id, 0);
+    } else if (caret === 0 && it.text) {
+      // Like Workflowy: Enter at the start adds an empty item above
+      list.splice(i, 0, newItem());
+      render(id, 0);
+    } else if (caret < el.value.length && it.children.length) {
+      // Splitting an item with sub items: the sub items stay with the second half
+      const before = newItem(it.text.slice(0, caret));
+      it.text = it.text.slice(caret);
+      list.splice(i, 0, before);
+      render(id, 0);
+    } else {
+      const next = newItem(it.text.slice(caret));
+      it.text = it.text.slice(0, caret);
+      if (caret === el.value.length && it.children.length && !it.collapsed) {
+        it.children.unshift(next); // like Workflowy: new item goes in as the first sub item
+      } else {
+        list.splice(i + 1, 0, next);
+      }
+      render(next.id, 0);
+    }
+    save();
+  } else if (e.key === 'Tab' && !e.shiftKey) {
+    e.preventDefault();
+    if (i === 0) return;
+    const prev = list[i - 1];
+    if (prev.id === DUMP || prev.mirrorOf) return;
+    checkpoint();
+    list.splice(i, 1);
+    prev.children.push(it);
+    prev.collapsed = false;
+    render(id, caret);
+    save();
+  } else if (e.key === 'Tab' && e.shiftKey) {
+    e.preventDefault();
+    if (!atZoomRoot) { checkpoint(); outdent(r, caret); }
+  } else if (e.key === 'Backspace' && !it.text && !it.children.length) {
+    e.preventDefault();
+    checkpoint();
+    const ids = visibleIds();
+    const prev = ids[ids.indexOf(id) - 1];
+    list.splice(i, 1);
+    render(prev);
+    save();
+  } else if (e.key === 'Backspace' && caret === 0 && el.selectionEnd === 0 && it.text && !it.mirrorOf) {
+    // Backspace at the start joins this item onto the one above (its sub items come along)
+    const ids = visibleIds();
+    const prevId = ids[ids.indexOf(id) - 1];
+    const p = prevId && find(prevId);
+    if (!p || p.it.day || p.it.id === SOMEDAY || p.it.mirrorOf || ancestors(id).some(a => a.id === prevId)) return;
+    e.preventDefault();
+    checkpoint();
+    const join = p.it.text.length;
+    p.it.text += (p.it.text && !p.it.text.endsWith(' ') ? ' ' : '') + it.text;
+    p.it.children.push(...it.children);
+    list.splice(i, 1);
+    render(prevId, join + (join ? 1 : 0));
+    save();
+  } else if (mod && e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+    e.preventDefault();
+    const j = i + (e.key === 'ArrowUp' ? -1 : 1);
+    if (j < 0 || j >= list.length || list[j].id === DUMP) return;
+    checkpoint();
+    [list[i], list[j]] = [list[j], list[i]];
+    render(id, caret);
+    save();
+  } else if (mod && e.key === 'ArrowUp') {
+    e.preventDefault();
+    setCollapsed(it, true, id);
+  } else if (mod && e.key === 'ArrowDown') {
+    e.preventDefault();
+    setCollapsed(it, false, id);
+  } else if (mod && e.key.toLowerCase() === 'd') {
+    e.preventDefault();
+    checkpoint();
+    const copy = cloneItem(it);
+    list.splice(i + 1, 0, copy);
+    render(copy.id);
+    save();
+    toast('Duplicated', { undo: true });
+  } else if (mod && e.key.toLowerCase() === 'm') {
+    e.preventDefault();
+    if (window.openMoveTo) window.openMoveTo([id]);
+  } else if (mod && !e.shiftKey && e.key.toLowerCase() === 'b') {
+    e.preventDefault(); wrapSelection(el, src, '**');
+  } else if (mod && !e.shiftKey && e.key.toLowerCase() === 'i') {
+    e.preventDefault(); wrapSelection(el, src, '*');
+  } else if (mod && e.shiftKey && e.key.toLowerCase() === 'h') {
+    e.preventDefault(); wrapSelection(el, src, '==');
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    el.blur();
+    if (window.selectOnly) window.selectOnly(id);
+  } else if (e.altKey && e.key === 'ArrowRight') {
+    e.preventDefault();
+    zoom(id);
+  } else if (e.altKey && e.key === 'ArrowLeft') {
+    e.preventDefault();
+    if (zoomId) zoom(find(zoomId).parent?.id || null, zoomId);
+  } else if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && !e.shiftKey) {
+    e.preventDefault();
+    const ids = visibleIds();
+    const target = ids[ids.indexOf(id) + (e.key === 'ArrowUp' ? -1 : 1)];
+    if (target) focusItem(target, caret);
+  }
+}
+
+function outdent(r, caret) {
+  const p = find(r.parent.id);
+  r.list.splice(r.i, 1);
+  p.list.splice(p.i + 1, 0, r.it);
+  render(r.it.id, caret ?? 0);
+  save();
+}
+
+// Zoom into an item so it becomes the page, like clicking a bullet in Workflowy
+function zoom(id, focusId) {
+  location.hash = id ? '#/' + id : '#/';
+  zoomAfter = focusId;
+}
+let zoomAfter = null;
+let viewMode = null; // set while the Views tab is open (#/views or #/views/<name>)
+function readHash() {
+  const h = location.hash.slice(2);
+  if (h === 'views' || h.startsWith('views/')) {
+    viewMode = h.slice(6) || 'today';
+    zoomId = null;
+  } else {
+    viewMode = null;
+    zoomId = h || null;
+  }
+}
+window.addEventListener('hashchange', () => {
+  readHash();
+  if (viewMode !== null) { render(); window.scrollTo(0, 0); return; }
+  const first = visibleIds()[0];
+  render(zoomAfter || (zoomId === DUMP ? null : first));
+  if (zoomId === DUMP && !zoomAfter) captureEl.focus();
+  zoomAfter = null;
+  window.scrollTo(0, 0);
+});
+
+document.getElementById('tabList').addEventListener('click', () => zoom(null));
+document.getElementById('tabDump').addEventListener('click', () => { ensureToday(); ensureSomeday(); zoom(DUMP); });
+document.getElementById('tabViews').addEventListener('click', () => { location.hash = '#/views'; });
+
+function setCaptureWhen(when) {
+  captureWhen = when;
+  document.querySelectorAll('#when button').forEach(b => b.classList.toggle('on', b.dataset.when === when));
+  captureEl.placeholder = when === 'today'
+    ? 'Has to get done today… (Tab switches to Someday)'
+    : 'Get done at some point… (Tab switches to Today)';
+}
+document.querySelectorAll('#when button').forEach(b =>
+  b.addEventListener('click', () => { setCaptureWhen(b.dataset.when); captureEl.focus(); }));
+
+captureEl.addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    return setCaptureWhen(captureWhen === 'today' ? 'someday' : 'today');
+  }
+  if (e.key !== 'Enter' || !captureEl.value.trim()) return;
+  e.preventDefault();
+  const list = captureWhen === 'someday' ? ensureSomeday() : ensureToday();
+  list.collapsed = false;
+  list.children.push(newItem(captureEl.value.trim()));
+  captureEl.value = '';
+  render();
+  save();
+});
+
+// ---- Claude ----
+const undoBtn = document.getElementById('undoBtn');
+const focusEl = document.getElementById('focus');
+let busy = false;
+let undoSnapshot = null;
+let plan = null;
+try { plan = JSON.parse(localStorage.getItem('plan')); } catch {}
+
+// Claude on/off, confirmation and spending (the server enforces the same rules)
+let settings = { claude_enabled: false, confirm: true, daily_limit: 1, notifications: true, usage: { today: 0, month: 0 } };
+const ACTION_NAMES = {
+  sort: 'sort your brain dump', breakdown: 'break this item down',
+  plan: 'pick your top 3 for today', capture: 'turn these notes into tasks'
+};
+const money = n => '$' + (n || 0).toFixed(n && n < 0.1 ? 3 : 2);
+
+function applySettings(s) {
+  settings = s;
+  document.body.classList.toggle('claude-on', !!s.claude_enabled);
+  document.getElementById('claudeSwitch').setAttribute('aria-checked', String(!!s.claude_enabled));
+  document.getElementById('claudeLabel').textContent = s.claude_enabled
+    ? 'Claude on · ' + money(s.usage && s.usage.today) + ' today'
+    : 'Claude off';
+  if (window.renderSettings) window.renderSettings();
+}
+
+async function loadSettings() {
+  try { applySettings(await (await fetch('/api/settings')).json()); } catch {}
+}
+
+async function saveSettings(changes) {
+  const res = await fetch('/api/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(changes)
+  });
+  applySettings(await res.json());
+  render();
+}
+
+document.getElementById('claudeSwitch').addEventListener('click', async () => {
+  if (!online) return alert('Open the checklist with Start Checklist.command to use Claude.');
+  if (settings.claude_enabled) {
+    await saveSettings({ claude_enabled: false });
+    setStatus('Claude is off. Nothing can be charged.');
+  } else if (confirm('Turn Claude on?\n\nClaude buttons cost about 1–3 cents per click, billed to your Anthropic account. '
+      + 'Daily limit: ' + money(settings.daily_limit) + '. '
+      + (settings.confirm ? 'You will still be asked before each one.' : ''))) {
+    await saveSettings({ claude_enabled: true });
+    setStatus(settings.has_key ? 'Claude is on' : 'Claude is on, but add your API key to claude-api-key.txt first');
+  }
+});
+
+async function askClaude(action, extra) {
+  if (!online) { alert('Open the checklist with Start Checklist.command to use Claude.'); return null; }
+  if (!settings.claude_enabled) {
+    alert('Claude is turned off, so nothing was sent or charged.\n\nTurn it on with the Claude switch at the top if you want to use it.');
+    return null;
+  }
+  // Pre-flight (idea 27): say what will happen and what it costs before spending anything
+  if (settings.confirm && !confirm('Use Claude to ' + (ACTION_NAMES[action] || action) + '?\n\n'
+      + 'This costs about 1–3 cents. Spent today: ' + money(settings.usage.today) + ' of your ' + money(settings.daily_limit) + ' daily limit; '
+      + 'this month: ' + money(settings.usage.month) + ' of ' + money(settings.monthly_limit) + '.')) {
+    return null;
+  }
+  busy = true;
+  document.body.classList.add('busy');
+  setStatus('Claude is thinking…');
+  try {
+    const res = await fetch('/api/claude/' + action, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ data }, extra))
+    });
+    const out = await res.json();
+    if (!res.ok) { setStatus(''); alert(out.error || 'Claude had a problem.'); return null; }
+    if (out.usage) setTimeout(() => setStatus(statusEl.textContent + ' · cost ' + money(out.usage.cost)), 50);
+    const u = settings.usage || {};
+    const today = (u.today || 0) + (out.usage ? out.usage.cost : 0), month = (u.month || 0) + (out.usage ? out.usage.cost : 0);
+    if (today >= 0.8 * settings.daily_limit || month >= 0.8 * settings.monthly_limit) {
+      toast('Heads up: Claude spending is at ' + money(today) + ' today and ' + money(month) + ' this month (80%+ of your limit).');
+    }
+    return out;
+  } catch (err) {
+    setStatus('');
+    alert("Couldn't reach the checklist server. Is it still running?");
+    return null;
+  } finally {
+    busy = false;
+    document.body.classList.remove('busy');
+    loadSettings();
+  }
+}
+
+// Notes or a screenshot -> tasks in today's Brain Dump (ideas 17 + 19)
+async function captureFromNotes(text, image) {
+  const out = await askClaude('capture', { text, image });
+  if (!out) return false;
+  if (window.confirmPreview) {
+    const ok = await window.confirmPreview('Tasks found', (out.tasks || []).map(t => ({ t, html: esc(t.text) + '<small>' + (t.today ? 'Today' : 'Someday') + '</small>' })));
+    if (!ok) return false;
+    out.tasks = ok.map(x => x.t);
+  }
+  checkpoint();
+  snapshot();
+  for (const t of out.tasks || []) {
+    const list = t.today ? ensureToday() : ensureSomeday();
+    list.collapsed = false;
+    list.children.push(newItem(t.text));
+  }
+  render();
+  save(true);
+  setStatus('Claude added ' + (out.tasks || []).length + ' tasks to the Brain Dump');
+  return true;
+}
+
+function snapshot() {
+  undoSnapshot = JSON.stringify(data);
+  undoBtn.hidden = false;
+}
+undoBtn.addEventListener('click', () => {
+  if (!undoSnapshot) return;
+  data = JSON.parse(undoSnapshot);
+  undoSnapshot = null;
+  undoBtn.hidden = true;
+  render();
+  save(true);
+  setStatus('Undid Claude\'s change');
+});
+
+const isDumpItem = id => ancestors(id).some(a => a.id === DUMP);
+
+async function sortDump() {
+  const out = await askClaude('sort');
+  if (!out) return;
+  if (window.confirmPreview) {
+    const rows = (out.placements || []).filter(p => find(p.item_id)).map(p => {
+      const dest = p.parent_id && find(p.parent_id) ? meta(find(p.parent_id).it.text).clean : (p.new_group || 'Sorted') + ' (new)';
+      return { p, html: esc(p.text || find(p.item_id).it.text) + '<small>→ ' + esc(dest) + (p.subtasks && p.subtasks.length ? ' · +' + p.subtasks.length + ' steps' : '') + '</small>' };
+    });
+    const ok = await window.confirmPreview('Sort my brain dump', rows);
+    if (!ok) return;
+    out.placements = ok.map(r => r.p);
+  }
+  checkpoint();
+  snapshot();
+  let moved = 0;
+  for (const p of out.placements || []) {
+    const r = find(p.item_id);
+    if (!r || !isDumpItem(p.item_id)) continue;
+    r.list.splice(r.i, 1);
+    const it = r.it;
+    if (p.text) it.text = p.text;
+    for (const s of p.subtasks || []) it.children.push(newItem(s));
+
+    let parent = p.parent_id && find(p.parent_id);
+    parent = parent && parent.it.id !== DUMP && !isDumpItem(p.parent_id) ? parent.it : null;
+    if (!parent) {
+      const name = (p.new_group || 'Sorted').trim();
+      parent = data.find(x => x.id !== DUMP && x.text.trim().toLowerCase() === name.toLowerCase());
+      if (!parent) {
+        parent = newItem(name);
+        const at = data.findIndex(x => x.id === DUMP);
+        data.splice(at < 0 ? data.length : at, 0, parent);
+      }
+    }
+    parent.children.push(it);
+    parent.collapsed = false;
+    moved++;
+  }
+  render();
+  save(true);
+  setStatus('Claude sorted ' + moved + ' item' + (moved === 1 ? '' : 's') + ' into your checklist');
+}
+
+async function breakDown(id) {
+  const out = await askClaude('breakdown', { item_id: id });
+  if (!out) return;
+  const r = find(id);
+  if (!r) return;
+  let steps = out.subtasks || [];
+  if (window.confirmPreview) {
+    const ok = await window.confirmPreview('Steps for: ' + meta(r.it.text).clean, steps.map(t => ({ t, html: esc(t) })));
+    if (!ok) return;
+    steps = ok.map(x => x.t);
+  }
+  checkpoint();
+  snapshot();
+  for (const s of steps) r.it.children.push(newItem(s));
+  r.it.collapsed = false;
+  render(id);
+  save(true);
+  setStatus('Claude added ' + steps.length + ' steps');
+}
+
+async function planDay() {
+  const out = await askClaude('plan');
+  if (!out) return;
+  plan = Object.assign({ date: todayKey() }, out);
+  try { localStorage.setItem('plan', JSON.stringify(plan)); } catch {}
+  render();
+  setStatus('Today\'s plan is ready (also saved as Today\'s Plan.md)');
+}
+
+function renderFocus() {
+  const picks = plan && plan.date === todayKey() && !zoomId
+    ? (plan.top3 || []).map(p => ({ p, r: find(p.item_id) })).filter(x => x.r)
+    : [];
+  focusEl.hidden = !picks.length;
+  if (!picks.length) return;
+  focusEl.innerHTML = '';
+  const h = document.createElement('h3');
+  h.textContent = 'Today\'s focus';
+  const close = document.createElement('button');
+  close.className = 'close';
+  close.textContent = '×';
+  close.title = 'Hide';
+  close.addEventListener('click', () => { plan = null; try { localStorage.removeItem('plan'); } catch {} render(); });
+  h.append(close);
+  const note = document.createElement('p');
+  note.className = 'note';
+  note.textContent = plan.note || '';
+  focusEl.append(h, note);
+  for (const { p, r } of picks) {
+    const row = document.createElement('div');
+    row.className = 'focus-item' + (r.it.done ? ' done' : '');
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.className = 'check';
+    box.checked = r.it.done;
+    box.addEventListener('change', () => { markDone(r.it, box.checked); render(); save(); });
+    const body = document.createElement('div');
+    const name = document.createElement('b');
+    name.textContent = r.it.text || 'Untitled';
+    name.title = 'Show in the list';
+    name.addEventListener('click', () => reveal(r.it.id));
+    const why = document.createElement('span');
+    why.className = 'why';
+    why.textContent = p.reason;
+    body.append(name, why);
+    row.append(box, body);
+    focusEl.append(row);
+  }
+}
+
+// Jump to an item wherever it is: open the right page and unfold everything above it
+function reveal(id) {
+  const above = ancestors(id);
+  above.forEach(a => { a.collapsed = false; });
+  const inDumpItem = above.some(a => a.id === DUMP);
+  if (inDumpItem && (zoomId !== DUMP || viewMode !== null)) return zoom(DUMP, id);
+  if (!inDumpItem && (zoomId || viewMode !== null)) return zoom(null, id);
+  render(id);
+}
+
+document.getElementById('sortBtn').addEventListener('click', sortDump);
+document.getElementById('planBtn').addEventListener('click', planDay);
+
+searchEl.addEventListener('input', () => {
+  query = searchEl.value.trim().toLowerCase();
+  render();
+});
+searchEl.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { searchEl.value = ''; query = ''; render(); searchEl.blur(); }
+  if (e.key === 'Enter' || e.key === 'ArrowDown') {
+    const first = visibleIds()[0];
+    if (first) { e.preventDefault(); focusItem(first); }
+  }
+});
+
+hideBtn.addEventListener('click', () => {
+  hideDone = !hideDone;
+  try { localStorage.setItem('hideDone', hideDone ? '1' : '0'); } catch {}
+  render();
+});
+
+document.addEventListener('keydown', e => {
+  const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName);
+  if (e.key === '/' && !typing) { e.preventDefault(); searchEl.focus(); }
+});
+
+titleEl.addEventListener('input', () => {
+  const z = zoomId && find(zoomId);
+  if (!z) return;
+  if (titleEl.value.includes('\n')) titleEl.value = titleEl.value.replace(/\n/g, ' ');
+  z.it.text = titleEl.value;
+  autosize(titleEl);
+  renderCrumbs();
+  save();
+});
+titleEl.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== 'ArrowDown') return;
+  e.preventDefault();
+  const list = currentList();
+  if (!list.length) list.push(newItem());
+  render(list[0].id, 0);
+});
+
+const countAll = it => it.children.reduce((n, c) => n + 1 + countAll(c), 0);
+const toast = (msg, opts) => window.showToast ? window.showToast(msg, opts) : setStatus(msg);
+
+// Deleting moves the item (and everything under it) to Deleted Items, where it can be restored
+async function deleteItem(id, opts = {}) {
+  const r = find(id);
+  if (!r) return;
+  const kids = countAll(r.it);
+  if (!opts.quiet && kids > 5 && !confirm('Delete "' + (meta(r.it.text).clean || 'this item') + '" and the ' + kids + ' items under it?\n\nThey go to Deleted Items, so you can restore them.')) return;
+  checkpoint();
+  const path = ancestors(id).map(a => a.text);
+  r.list.splice(r.i, 1);
+  render();
+  if (online) {
+    try {
+      await fetch('/api/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item: r.it, path })
+      });
+    } catch (err) { setStatus('Could not save the deleted item'); }
+  }
+  save(true);
+  if (!opts.quiet) toast('Deleted "' + (meta(r.it.text).clean || 'item').slice(0, 40) + '"', { undo: true });
+}
+
+function setStatus(msg) { statusEl.textContent = msg; }
+
+// ---- Undo / redo for everything (⌘Z / ⇧⌘Z) ----
+// The list is snapshotted after each pause in changes; checkpoint() splits off a step before big actions
+let undoStack = [], redoStack = [], committed = null, commitTimer = null, restoring = false;
+function commitHistory() {
+  clearTimeout(commitTimer);
+  commitTimer = null;
+  const cur = JSON.stringify(data);
+  if (committed === null) { committed = cur; return; }
+  if (cur === committed) return;
+  undoStack.push(committed);
+  if (undoStack.length > 100) undoStack.shift();
+  redoStack = [];
+  committed = cur;
+}
+const checkpoint = () => commitHistory();
+function stepHistory(from, to, label) {
+  commitHistory();
+  if (!from.length) return toast('Nothing to ' + label);
+  to.push(committed);
+  committed = from.pop();
+  data = JSON.parse(committed);
+  restoring = true;
+  render();
+  save(true);
+  restoring = false;
+  toast(label === 'undo' ? 'Undone' : 'Redone');
+}
+const undo = () => stepHistory(undoStack, redoStack, 'undo');
+const redo = () => stepHistory(redoStack, undoStack, 'redo');
+document.addEventListener('keydown', e => {
+  if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'z') return;
+  if (e.target.id === 'search' || e.target.closest && e.target.closest('.modal, .settings')) return;
+  e.preventDefault();
+  if (e.shiftKey) redo(); else undo();
+});
+
+// ---- Saving, with a light that shows saved / saving / problem ----
+const saveDot = document.getElementById('saveDot');
+function setDot(state, title) {
+  saveDot.className = 'dot ' + state;
+  saveDot.title = title;
+  saveDot.setAttribute('aria-label', title);
+}
+
+function save(now) {
+  if (!restoring) { clearTimeout(commitTimer); commitTimer = setTimeout(commitHistory, 700); }
+  clearTimeout(saveTimer);
+  setStatus('Saving…');
+  setDot('saving', 'Saving…');
+  saveTimer = setTimeout(writeData, now ? 0 : 500);
+}
+
+let version = 0;
+let saving = false;
+let base = null; // the list as the server last had it, for merging
+
+function rememberBase(remote, v) {
+  base = JSON.stringify(remote);
+  version = v;
+  try { localStorage.setItem('checklist-base', base); localStorage.setItem('checklist-version', String(v)); } catch {}
+}
+
+async function writeData() {
+  saveTimer = null;
+  try { localStorage.setItem('checklist', JSON.stringify(data)); } catch {}
+  if (!online) { setDot('offline', 'Not connected: saved in this browser only'); return setStatus('Saved in browser only'); }
+  saving = true;
+  try {
+    const res = await fetch('/api/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data, base: version })
+    });
+    const out = await res.json();
+    if (res.status === 409) {
+      // Someone else (Claude, add_task.py, another tab) saved first: merge both and save again
+      applyRemote(out.data, out.version);
+      saving = false;
+      return writeData();
+    }
+    if (!res.ok) throw new Error(res.status);
+    rememberBase(data, out.version);
+    setDot('saved', 'All changes saved to Supabase');
+    setStatus('Saved ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
+  } catch (err) {
+    pendingUpload = true;
+    setDot('error', 'Save failed. Changes are kept in this browser and will upload when the server is back.');
+    setStatus('Save failed — will retry');
+  } finally {
+    saving = false;
+  }
+}
+
+// Three-way merge by item id: keeps your changes and adds what changed elsewhere since `base`
+function mergeLists(baseList, local, remote) {
+  const flat = (list, out = {}, parent = null) => {
+    list.forEach((it, i) => {
+      const { children, ...fields } = it;
+      out[it.id] = { fields, parent, i };
+      flat(children || [], out, it.id);
+    });
+    return out;
+  };
+  const B = flat(baseList || []), L = flat(local), R = flat(remote);
+  const result = JSON.parse(JSON.stringify(local));
+  const index = {};
+  (function idx(list, parent) { for (const it of list) { index[it.id] = { it, list: list, parent }; idx(it.children, it); } })(result, null);
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const listOf = pid => pid && index[pid] ? index[pid].it.children : result;
+  const detach = id => { const x = index[id]; const k = x.list.indexOf(x.it); if (k >= 0) x.list.splice(k, 1); };
+
+  // Field changes made elsewhere, where you didn't change the same item
+  for (const id in R) {
+    if (!L[id] || !B[id]) continue;
+    const it = index[id].it;
+    for (const k of new Set([...Object.keys(B[id].fields), ...Object.keys(R[id].fields)])) {
+      if (!same(R[id].fields[k], B[id].fields[k]) && same(L[id].fields[k], B[id].fields[k])) {
+        if (R[id].fields[k] === undefined) delete it[k]; else it[k] = R[id].fields[k];
+      }
+    }
+    // Moved elsewhere, not moved by you
+    if (R[id].parent !== B[id].parent && L[id].parent === B[id].parent && (R[id].parent === null || index[R[id].parent])) {
+      detach(id);
+      const dest = listOf(R[id].parent);
+      dest.splice(Math.min(R[id].i, dest.length), 0, it);
+      index[id].list = dest;
+    }
+  }
+  // Items added elsewhere (parents first, in their order)
+  (function add(list, parent) {
+    list.forEach((it, i) => {
+      if (!B[it.id] && !L[it.id] && !index[it.id]) {
+        const copy = JSON.parse(JSON.stringify({ ...it, children: [] }));
+        const dest = listOf(parent);
+        dest.splice(Math.min(i, dest.length), 0, copy);
+        index[it.id] = { it: copy, list: dest };
+      }
+      add(it.children || [], it.id);
+    });
+  })(remote, null);
+  // Items deleted elsewhere that you didn't touch
+  for (const id in B) {
+    if (!R[id] && L[id] && index[id] && same(L[id].fields, B[id].fields)) detach(id);
+  }
+  return result;
+}
+
+let pendingUpload = false;
+function applyRemote(remote, v) {
+  const el = document.activeElement;
+  const li = el && el.closest && el.closest('#root li');
+  const caret = li ? el.selectionStart : undefined;
+  const merged = base ? mergeLists(JSON.parse(base), data, remote) : remote;
+  rememberBase(remote, v);
+  data = merged;
+  ensureDump();
+  render(li ? li.dataset.id : null, caret);
+  return JSON.stringify(merged) !== JSON.stringify(remote);
+}
+
+// Check every 2 seconds for outside changes, and reconnect after the server was off
+setInterval(async () => {
+  if (busy || saving || saveTimer) return;
+  try {
+    if (!online || pendingUpload) {
+      const res = await fetch('/api/list');
+      if (!res.ok) return;
+      const out = await res.json();
+      online = true;
+      pendingUpload = false;
+      document.getElementById('warning').style.display = 'none';
+      if (!base) { try { base = localStorage.getItem('checklist-base'); } catch {} }
+      applyRemote(out.data, out.version);
+      save(true);
+      toast('Back online. Your changes were saved to Supabase.');
+      loadSettings();
+      return;
+    }
+    const v = (await (await fetch('/api/version')).json()).version;
+    if (v === version || saving || saveTimer) return;
+    const out = await (await fetch('/api/list')).json();
+    if (saving || saveTimer) return;
+    if (applyRemote(out.data, out.version)) save(true);
+    setStatus('Updated from another device');
+  } catch {
+    if (online) setDot('error', 'Lost connection to the checklist server. Changes are kept in this browser.');
+  }
+}, 2000);
+
+document.getElementById('add').addEventListener('click', () => {
+  const it = newItem();
+  currentList().push(it);
+  render(it.id);
+  save();
+});
+
+window.addEventListener('resize', () => { const a = document.activeElement; if (a && a.classList.contains('text')) autosize(a); root.querySelectorAll('.note').forEach(autosize); });
+
+async function load() {
+  try {
+    const res = await fetch('/api/list');
+    if (!res.ok) throw new Error(res.status);
+    const out = await res.json();
+    data = out.data;
+    rememberBase(data, out.version);
+    online = true;
+    setStatus('Connected');
+    setDot('saved', 'All changes saved to Supabase');
+  } catch {
+    document.getElementById('warning').style.display = 'block';
+    try { data = JSON.parse(localStorage.getItem('checklist')) || []; } catch { data = []; }
+    try { base = localStorage.getItem('checklist-base'); } catch {}
+    setStatus('Saved in browser only');
+    setDot('offline', 'Not connected: saved in this browser only. It will catch up when the server is running.');
+  }
+  ensureDump();
+  // Older items have no timestamps yet; start their clocks now so "stale" works from here on
+  (function stamp(list) {
+    for (const it of list) { it.created = it.created || Date.now(); it.updated = it.updated || it.created; stamp(it.children); }
+  })(data);
+  if (online) await loadSettings();
+  readHash();
+  if (zoomId === DUMP) ensureToday();
+  committed = JSON.stringify(data);
+  render();
+  const list = currentList();
+  if (viewMode === null && list[0] && !list[0].text) focusItem(list[0].id);
+  if (window.afterLoad) window.afterLoad();
+}
+
+document.getElementById('notesBtn').addEventListener('click', () => window.openNotesCapture && window.openNotesCapture());
+</script>
+<script src="views.js"></script>
+<script src="extras.js"></script>
+<script src="more.js"></script>
+<script src="timekeeping.js"></script>
+<script>load();</script>
+</body>
+</html>

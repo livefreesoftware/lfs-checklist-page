@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Progress</title>
+<!-- Idea 63: a clean, read-only progress page for one client (@name). Internal tags and notes are left out.
+     Open from Views › Tags & clients. It runs on your Mac only; print it or save it as a PDF to share. -->
+<style>
+  :root { --bg: #f6f3ed; --card: #fff; --ink: #3c1a2c; --muted: #7d6e75; --green: #577249; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; }
+  main { max-width: 680px; margin: 0 auto; padding: 48px 16px; }
+  h1 { font-size: 30px; margin: 0 0 4px; }
+  .sub { color: var(--muted); margin: 0 0 24px; }
+  .bar { height: 10px; background: #e4ddd2; border-radius: 5px; overflow: hidden; margin: 0 0 28px; }
+  .bar span { display: block; height: 100%; background: var(--green); }
+  ul { list-style: none; padding: 0; margin: 0; background: var(--card); border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.05); }
+  li { display: flex; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #efe9df; }
+  li:last-child { border-bottom: 0; }
+  li.done span { color: var(--muted); text-decoration: line-through; }
+  footer { margin-top: 28px; color: var(--muted); font-size: 14px; }
+  @media print { body { background: #fff; } ul { box-shadow: none; border: 1px solid #ddd; } }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title">Project progress</h1>
+  <p class="sub" id="sub"></p>
+  <div class="bar"><span id="bar"></span></div>
+  <ul id="list"></ul>
+  <footer>Live Free Software · giles@livefreesoftware.com</footer>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="db.js"></script>
+<script>
+const client = (new URLSearchParams(location.search).get('c') || '').toLowerCase();
+const clean = t => t.replace(/(?:^|\s)[#@][\w-]+/g, ' ').replace(/(?:due:|!)\d{4}-\d{2}-\d{2}|\b[ie]:\d\b|~\d+[mh]\b|blocked-by:"[^"]*"/g, '').replace(/\s+/g, ' ').trim();
+const mentions = t => [...t.matchAll(/(?:^|\s)@([\w-]+)/g)].some(m => m[1].toLowerCase() === client);
+
+fetch('/api/list').then(r => r.json()).then(res => { const data = res.data || res;
+  const steps = [];
+  (function walk(list) {
+    for (const it of list) {
+      // Steps are the client's leaf items; internal notes ("note ...:") are skipped
+      if (!it.children.length && mentions(it.text) && !/^note\b/i.test(it.text)) steps.push(it);
+      walk(it.children);
+    }
+  })(data);
+  const done = steps.filter(s => s.done).length;
+  const name = client.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  document.title = name + ' · Project Progress';
+  document.getElementById('title').textContent = name ? name + ': project progress' : 'Project progress';
+  document.getElementById('sub').textContent = steps.length ? done + ' of ' + steps.length + ' steps complete' : 'No steps yet.';
+  document.getElementById('bar').style.width = (steps.length ? done / steps.length * 100 : 0) + '%';
+  const ul = document.getElementById('list');
+  for (const s of steps) {
+    const li = document.createElement('li');
+    if (s.done) li.className = 'done';
+    li.innerHTML = '<b></b><span></span>';
+    li.firstChild.textContent = s.done ? '✅' : s.doing ? '🚧' : '⬜';
+    li.lastChild.textContent = clean(s.text);
+    ul.append(li);
+  }
+});
+</script>
+</body>
+</html>
